@@ -1,0 +1,31 @@
+{
+  "name": "email-spoofer",
+  "version": "1.0.0",
+  "description": "Email spoofing tool.",
+  "main": "dist/app.js",
+  "scripts": {
+    "test:run": "nodemon .",
+    "test:build": "tsc -w",
+    "test": "concurrently npm:test:*",
+    "start": "tsc && node ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ianiiaannn/email-spoofer.git"
+  },
+  "keywords": [
+    "email",
+    "spoofing"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ianiiaannn/email-spoofer/issues"
+  },
+  "homepage": "https://github.com/ianiiaannn/email-spoofer#readme",
+  "dependencies": {
+    "concurrently": "^7.3.0",
+    "nodemon": "^2.0.19",
+    "typescript": "^4.7.4"
+  }
+}
