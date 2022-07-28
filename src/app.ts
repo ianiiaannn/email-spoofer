@@ -1,9 +1,9 @@
 #! /usr/bin/env node
+import chalk from 'chalk';
 import { OptionValues, program } from 'commander';
 import nodemailer from 'nodemailer';
 
-import { smtp } from './smtp';
-import chalk from 'chalk';
+import { smtp } from './smtp.js';
 
 const rainbow = {
   red: chalk.rgb(193, 57, 94),

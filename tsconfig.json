@@ -3,7 +3,7 @@
     "target": "ES6",
     "strict": true,
     "outDir": "dist",
-    "module": "commonjs",
+    "module": "ES2022",
     "moduleResolution": "node",
     "sourceMap": true,
     "esModuleInterop": true,

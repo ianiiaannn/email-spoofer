@@ -4,7 +4,7 @@ import os from 'os';
 import { SMTPServer, SMTPServerAuthentication, SMTPServerSession } from 'smtp-server';
 import { Stream } from 'stream';
 
-import { option } from './app';
+import { option } from './app.js';
 
 export const smtp = new SMTPServer({
   logger: true,
