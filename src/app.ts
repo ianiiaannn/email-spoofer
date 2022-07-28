@@ -31,7 +31,7 @@ program
 program.parse();
 
 
-const option: OptionValues = program.opts();
+export const option: OptionValues = program.opts();
 if (option.help) {
   program.help();
 }
