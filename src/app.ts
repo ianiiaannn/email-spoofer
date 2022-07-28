@@ -1,9 +1,8 @@
 #! /usr/bin/env node
 import chalk from 'chalk';
 import { OptionValues, program } from 'commander';
-import nodemailer from 'nodemailer';
-
-import { smtp } from './smtp.js';
+import dns, { MxRecord } from 'dns';
+import net from 'net';
 
 const rainbow = {
   red: chalk.rgb(193, 57, 94),
@@ -18,9 +17,9 @@ program
   .description('CLI tool to send emails from any email address')
   .version(process.env.npm_package_version as string);
 
-//program
+// program
 //  .option(rainbow.red('-h --help', 'Print help message.'));
-//program
+// program
 //  .option('%c-h --help', 'color: red');
 program
   .option('-h --help', rainbow.red('Print help message.'));
@@ -48,36 +47,49 @@ export const option: OptionValues = program.opts();
 if (option.help) {
   program.help();
 }
-smtp.listen(option.port, 'localhost', () => {
-  console.log(`SMTP server listening on port ${option.port}`);
-});
 if (!(option.from && option.to)) {
   console.log('Please provide a from and to email address.');
   process.exit(1);
 }
-console.log(`Sending email from ${option.from} to ${option.to}`);
-nodemailer.createTransport({
-  host: 'localhost',
-  port: option.port,
-  secure: false,
-  tls: {
-    rejectUnauthorized: false,
-  },
-  auth: {
-    user: 'a',
-    pass: 'a',
-  },
-}).sendMail({
-  from: option.from,
-  to: option.to,
-  cc: option.cc,
-  bcc: option.bcc,
-  subject: option.subject,
-  text: option.body,
-}).then((callback) => {
-  console.log(callback);
-  console.log(`User part done, switch to SMTP server.`);
-}).catch((error) => {
-  console.error(error);
-});
 
+// Note: option.to trigger some strange SMTP things.
+dns.resolveMx(option.from.split('@')[1], (err, address: MxRecord[]) => {
+  if (err) {
+    console.log('Please check your internet connection.');
+    process.exit(1);
+  }
+  const server: string = address[0].exchange;
+  console.log(server);
+  const socket = net.createConnection(
+    option.port,
+    server, () => {
+      console.log(`Connected to ${server} on port ${option.port}`);
+    });
+  const CRLF: string = '\r\n';
+  const payload: string[] = [
+    `HELO ${server}`,
+    // `STARTSSL`,
+    `MAIL FROM: <${option.from}>`,
+    `RCPT TO: <${option.to}>`,
+    `DATA`,
+    `Subject: ${option.subject || 'No Subject'}
+From: <${option.from}>
+To: <${option.to}>
+Cc: <${option.cc || ''}>
+Bcc: <${option.bcc || ''}>
+${option.body || ''}
+${CRLF}.`,
+    /* 'DATA\r\n.\r\n',*/
+    `QUIT`,
+  ];
+  let index: number = 0;
+  socket.on('data', (data: Buffer) => {
+    const response: string = data.toString();
+    console.log(response);
+    if (index <= payload.length) {
+      socket.write(`${payload[index]}${CRLF}`);
+      console.log(`> ${payload[index]}`);
+      index++;
+    }
+  });
+});
