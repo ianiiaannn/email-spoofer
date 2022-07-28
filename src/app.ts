@@ -5,11 +5,14 @@ import dns, { MxRecord } from 'dns';
 import net from 'net';
 
 const rainbow = {
-  red: chalk.rgb(193, 57, 94),
-  green: chalk.rgb(174, 193, 123),
-  yellow: chalk.rgb(240, 202, 80),
-  orange: chalk.rgb(224, 123, 66),
-  blue: chalk.rgb(137, 167, 194),
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m',
+  white: '\x1b[37m',
+  space: '     ',
 };
 
 program
@@ -17,29 +20,25 @@ program
   .description('CLI tool to send emails from any email address')
   .version(process.env.npm_package_version as string);
 
-// program
-//  .option(rainbow.red('-h --help', 'Print help message.'));
-// program
-//  .option('%c-h --help', 'color: red');
 program
-  .option('-h --help', rainbow.red('Print help message.'));
+  .option(rainbow.red+'-h --help', rainbow.space+'Print help message.');
 program
-  .option('-f --from <string>', rainbow.green('Email address to send from.'));
+  .option(rainbow.green+'-f --from <string>', rainbow.space+'Email address to send from.');
 program
-  .option('-t --to <string>', rainbow.yellow('Email address to send to.'));
-program
-  .option('--cc [string]', rainbow.orange('cc email address.'));
-program
-  .option('--bcc [string]', rainbow.blue('bcc email address.'));
+  .option(rainbow.yellow+'-t --to <string>', rainbow.space+'Email address to send to.');
+//program
+  //.option(rainbow.blue+'--cc \x5bstring]', rainbow.space+'cc email address.');
+//program
+//  .option('--bcc [string]', rainbow.blue('bcc email address.'));
 
 program
   .option('--subject [string]', 'Subject of the email.');
 program
   .option('--body [string]', 'Body of the email.');
-
 program
   .option('-p --port [number]', 'Port to host SMTP server on.', '25');
 // .option('--attachment [string]', 'Attachment to send with the email.');
+console.log(rainbow.blue);
 program.parse();
 
 
