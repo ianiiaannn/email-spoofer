@@ -21,7 +21,7 @@ program
   .description('CLI tool to send emails from any email address')
   .version(process.env.npm_package_version as string);
 
-  program
+program
   .option(rainbow.red+'-h --help', rainbow.space+'Print help message.');
 program
   .option(rainbow.green+'-f --from <string>', rainbow.space+'Email address to send from.');
