@@ -5,7 +5,7 @@ import nodemailer from 'nodemailer';
 import { smtp } from './smtp';
 
 program
-  .name('email spoofer')
+  .name('email-spoofer')
   .description('CLI tool to send emails from any email address')
   .version(process.env.npm_package_version as string);
 
@@ -38,7 +38,11 @@ if (option.help) {
 smtp.listen(option.port, 'localhost', () => {
   console.log(`SMTP server listening on port ${option.port}`);
 });
-
+if (!(option.from && option.to)) {
+  console.log('Please provide a from and to email address.');
+  process.exit(1);
+}
+console.log(`Sending email from ${option.from} to ${option.to}`);
 nodemailer.createTransport({
   host: 'localhost',
   port: option.port,
@@ -59,10 +63,7 @@ nodemailer.createTransport({
   text: option.body,
 }).then((callback) => {
   console.log(callback);
-  console.log('Email sent successfully.');
-  // smtp.close(() => {
-  // console.log('SMTP server closed.');
-  // });
+  console.log(`User part done, switch to SMTP server.`);
 }).catch((error) => {
   console.error(error);
 });
