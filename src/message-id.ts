@@ -1,5 +1,3 @@
-import os from 'os';
-
 // From https://github.com/jordan-wright/email/blob/master/email.go
 
 // generateMessageID generates and returns a string suitable for an RFC 2822
@@ -16,7 +14,7 @@ import os from 'os';
  * 
  * @return {string} A valid messageID
  */
-export function generateMessageID(hostname:string): String {
+export function generateMessageID(hostname: string): String {
   const time: Number = Math.floor(new Date().getTime() / 1000);
   const pid: number = process.pid;
   const randomInt: Number = Math.floor(Math.random() * 2 ^ 53);

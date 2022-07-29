@@ -37,7 +37,8 @@ program
 program
   .option('--bcc [string]', 'bcc email address.');
 
-  .option(rainbow.yellow+'-t --to <string>', rainbow.space+'Email address to send to.');
+program
+  .option(rainbow.yellow + '-t --to <string>', rainbow.space + 'Email address to send to.');
 program
   .option('--cc [string]', 'cc email address.');
 program
@@ -55,7 +56,7 @@ program
   .option('--password', 'Password for SMTP server.');
 // .option('--attachment [string]', 'Attachment to send with the email.');
 program
- .option('--attachment [string]', 'Attachment to send with the email.');
+  .option('--attachment [string]', 'Attachment to send with the email.');
 console.log(rainbow.blue);
 program.parse();
 
@@ -105,20 +106,20 @@ To: ${option.to}`);
     payload[payload.length - 1] += (`Bcc: ${option.bcc}`);
   }
   payload[payload.length - 1] += (`
-Message-ID: <${ generateMessageID(option.from.split('@')[1])}>
-Subject: ${ option.subject }
+Message-ID: <${generateMessageID(option.from.split('@')[1])}>
+Subject: ${option.subject}
 
-${ option.body }
+${option.body}
 
-${ CRLF }.`);
+${CRLF}.`);
   payload.push(`QUIT`);
   let index: number = 0;
   socket.on('data', (data: Buffer) => {
     const response: string = data.toString();
     console.log(response);
     if (index <= payload.length) {
-      socket.write(`${ payload[index] }${ CRLF } `);
-      console.log(`> ${ payload[index] } `);
+      socket.write(`${payload[index]}${CRLF} `);
+      console.log(`> ${payload[index]} `);
       index++;
     } else {
       socket.end();
