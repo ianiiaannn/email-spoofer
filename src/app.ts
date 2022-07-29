@@ -37,6 +37,11 @@ program
 program
   .option('--bcc [string]', 'bcc email address.');
 
+  .option(rainbow.yellow+'-t --to <string>', rainbow.space+'Email address to send to.');
+program
+  .option('--cc [string]', 'cc email address.');
+program
+  .option('--bcc [string]', 'bcc email address.');
 program
   .option('--subject [string]', 'Subject of the email.');
 program
@@ -49,6 +54,8 @@ program
 program
   .option('--password', 'Password for SMTP server.');
 // .option('--attachment [string]', 'Attachment to send with the email.');
+program
+ .option('--attachment [string]', 'Attachment to send with the email.');
 console.log(rainbow.blue);
 program.parse();
 
