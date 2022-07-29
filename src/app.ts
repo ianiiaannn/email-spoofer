@@ -26,18 +26,18 @@ program
   .option(rainbow.green+'-f --from <string>', rainbow.space+'Email address to send from.');
 program
   .option(rainbow.yellow+'-t --to <string>', rainbow.space+'Email address to send to.');
-//program
-  //.option(rainbow.blue+'--cc \x5bstring]', rainbow.space+'cc email address.');
-//program
-//  .option('--bcc [string]', rainbow.blue('bcc email address.'));
-
+program
+  .option('--cc [string]', 'cc email address.');
+program
+  .option('--bcc [string]', 'bcc email address.');
 program
   .option('--subject [string]', 'Subject of the email.');
 program
   .option('--body [string]', 'Body of the email.');
 program
   .option('-p --port [number]', 'Port to host SMTP server on.', '25');
-// .option('--attachment [string]', 'Attachment to send with the email.');
+program
+ .option('--attachment [string]', 'Attachment to send with the email.');
 console.log(rainbow.blue);
 program.parse();
 
