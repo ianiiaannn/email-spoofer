@@ -25,25 +25,23 @@ program
   .version(process.env.npm_package_version as string);
 
 program
-  .requiredOption(rainbow.green + '-f --from <string>', rainbow.space + 'Email address to send from.');
-program
-  .option(rainbow.yellow + '-t --to <string>', rainbow.space + 'Email address to send to.');
-
-program
-  .option(`-s --smtp [string]`, `SMTP server to use. (Default: from email domain)`);
-
+  .option('-f --from <string>', 'Email address to send from.');
 program
   .option('-t --to <string>', 'Email address to send to.');
 program
   .option('--cc [string]', 'cc email address.');
 program
   .option('--bcc [string]', 'bcc email address.');
+
 program
   .option('--subject [string]', 'Subject of the email.');
 program
   .option('--body [string]', 'Body of the email.');
+
 program
-  .option('-p --port [number]', 'Port to host SMTP server on.', '25');
+  .option(`-s --smtp [string]`, `SMTP server to use. (Default: to email domain)`);
+program
+  .option('-p --port [number]', 'Port to request.', '25');
 
 program
   .option('--MF [string]', 'Mail from a fake domain.');
@@ -68,11 +66,11 @@ if (option.help) {
   program.help();
 }
 
-console.log(gradient.rainbow(figlet.textSync('Email Spoofer', { horizontalLayout: 'full' })));
+console.log(gradient.rainbow(figlet.textSync('email-spoofer')));
 
 if (!(option.from && option.to)) {
   console.log('Please provide a from and to email address.');
-  process.exit(1);
+  program.help();
 }
 
 if (!option.smtp) {
