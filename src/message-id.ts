@@ -11,7 +11,7 @@
 // - The sending hostname
 /**
  * Generate a message ID
- * 
+ * @param {string} hostname - The hostname to use in the Message-ID string
  * @return {string} A valid messageID
  */
 export function generateMessageID(hostname: string): String {
